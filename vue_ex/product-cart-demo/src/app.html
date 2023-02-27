@@ -125,7 +125,9 @@
       app.component("sidebar", {
         props: ["toggle", "cart", "inventory"],
         computed: {
-          
+          cartTotal() {
+            return (this.cart.carrots * 4.82).toFixed(2)
+          }
         },
         methods: {
           getPrice(name) {
@@ -133,13 +135,6 @@
               return p.name === name
             })
             return product.price.USD
-          },
-          calculateTotal() {
-            const names = Object.keys(this.cart)
-            const total = Object.values(this.cart).reduce((acc, curr, index) => {
-              return acc + (curr * this.getPrice(names[index]))
-            })
-            return total
           }
         },
         template: `
@@ -183,7 +178,7 @@
 
                 <p class="center"><em>No items in cart</em></p>
                 <div class="spread">
-                  <span><strong>Total:</strong> {{ calculateTotal() }} </span>
+                  <span><strong>Total:</strong> {{ cartTotal }} </span>
                   <button class="btn btn-light">Checkout</button>
                 </div>
               </div>
