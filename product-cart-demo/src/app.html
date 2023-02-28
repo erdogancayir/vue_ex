@@ -25,7 +25,7 @@
         </nav>
         <a @click="toggleSidebar" class="top-bar-cart-link">
           <i class="icofont-cart-alt icofont-1x"></i>
-          <span>Cart (0)</span>
+          <span>Cart ( {{ totalQuantity }})</span>
         </a>
       </header>
 
@@ -89,6 +89,7 @@
       :toggle="toggleSidebar"
       :cart="cart"
       :inventory="inventory"
+      :remove="removeItem"
       />
 
       <footer>
@@ -101,18 +102,29 @@
       let app = Vue.createApp({
         data() {
           return {
-            showSidebar: true,
+            showSidebar: false,
             inventory: [],
             cart: {}
+          }
+        },
+        computed: {
+          totalQuantity() {
+            return Object.values(this.cart).reduce((acc, curr) => {
+              return acc + curr
+            }, 0)
           }
         },
         methods: {
           addToCart(name, index) {
             if (!this.cart[name]) this.cart[name] = 0
             this.cart[name] += this.inventory[index].quantity
+            this.inventory[index].quantity = 0
           },
           toggleSidebar() {
             this.showSidebar = !this.showSidebar
+          },
+          removeItem(name) {
+            delete this.cart[name]
           }
         },
         async mounted() {
@@ -123,10 +135,7 @@
       })
 
       app.component("sidebar", {
-        props: ["toggle", "cart", "inventory"],
-        computed: {
-          
-        },
+        props: ["toggle", "cart", "inventory", "remove"], 
         methods: {
           getPrice(name) {
             const product = this.inventory.find((p) => {
@@ -168,11 +177,11 @@
                     <tr v-for="(quantity, key, i) in cart" :key="i">
                       <td><i class="icofont-carrot icofont-3x"></i></td>
                       <td>{{ key }}</td>
-                      <td>\${{ getPrice(key) }}/td>
+                      <td>\${{ getPrice(key) }}</td>
                       <td class="center">{{ quantity }}</td>
-                      <td>\${{ quantity * 4.82 }}</td>
+                      <td>\${{ quantity * getPrice(key) }}</td>
                       <td class="center">
-                        <button class="btn btn-light cart-remove">
+                        <button @click="remove(key)" class="btn btn-light cart-remove">
                           &times;
                         </button>
                       </td>
@@ -180,7 +189,7 @@
                   </tbody>
                 </table>
 
-                <p class="center"><em>No items in cart</em></p>
+                <p class="center" v-if="!Object.keys(cart).length"><em>No items in cart</em></p>
                 <div class="spread">
                   <span><strong>Total:</strong> {{ calculateTotal() }} </span>
                   <button class="btn btn-light">Checkout</button>
